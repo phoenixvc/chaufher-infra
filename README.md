@@ -1,4 +1,4 @@
-# ChaufHER Infra Technical Design
+# ChaufHER Infrastructure Technical Design
 
 <!-- CI/CD Status Badges -->
 [![Plan/Apply](https://img.shields.io/github/actions/workflow/status/phoenixvc/chaufher-infra/deploy.yml?branch=main&label=Plan%2FApply&logo=github)](https://github.com/phoenixvc/chaufher-infra/actions/workflows/deploy.yml)
@@ -9,74 +9,958 @@
 ---
 
 ## Table of Contents
+
+### Business & Strategy
+- [Product Overview](#product-overview)
+- [Purpose & Value Proposition](#purpose--value-proposition)
+- [Target Audience](#target-audience)
+- [Expected Outcomes & KPIs](#expected-outcomes--kpis)
+- [Operational Excellence](#operational-excellence)
+
+### Architecture & Design
+- [Design Philosophy](#design-philosophy)
+- [Architectural Overview](#architectural-overview)
+- [System Interfaces](#system-interfaces)
+- [Infrastructure Patterns](#infrastructure-patterns)
+
+### Integration & Collaboration
+- [App Integration & Alignment](#app-integration--alignment)
+- [Choreography with App Repos](#choreography-with-app-repos)
+- [Mobile Checklist](MOBILE_CHECKLIST.md)
+
+### Operations & Support
+- [Contact / Support](#contact--support)
+- [Operational Runbooks](#operational-runbooks)
+- [Security & Compliance](#security--compliance)
+- [Policy & Governance](#policy--governance)
+
+### Developer Guide
 - [Getting Started](#getting-started)
 - [Repository Layout](#repository-layout)
 - [Contributing / PR Process](#contributing--pr-process)
 - [Automation Commands](#automation-commands)
-- [Security & Secret Handling](#security--secret-handling)
-- [Policy, Cost & Compliance](#policy-cost--compliance)
-- [Contact / Support](#contact--support)
-- [Operational Runbooks](#operational-runbooks)
+- [Testing & Validation](#testing--validation)
+- [Deployment Guide](#deployment-guide)
+
+### Reference
 - [Versioning & Release Notes](#versioning--release-notes)
-- [Choreography with App Repos](#choreography-with-app-repos)
-- [Accessibility & Docs](#accessibility--docs)
-- [Mobile Checklist](MOBILE_CHECKLIST.md)
-- [Product Overview](#product-overview)
-- [Purpose](#purpose)
-- [Design Details](#design-details)
-- [App Integration & Alignment](#app-integration--alignment)
+- [Documentation Index](#documentation-index)
 
 ---
+
+# Business & Strategy
+
+## Product Overview
+
+The ChaufHER Infrastructure repository is the foundational platform powering the ChaufHER ride-sharing ecosystem. It delivers enterprise-grade infrastructure as code (IaC) and DevOps automation for Azure-native environments, ensuring secure, reliable, and scalable operations across all platform services.
+
+### Mission
+
+Enable ChaufHER's business growth by providing:
+- **Reliability**: 99.9%+ uptime for safety-critical ride-sharing operations
+- **Security**: Compliance-ready infrastructure protecting driver and rider data
+- **Agility**: Rapid feature deployment supporting business innovation
+- **Cost Efficiency**: Predictable cloud spend with automated optimization
+
+### Strategic Value
+
+| Business Need | Infrastructure Solution | Business Impact |
+|---------------|------------------------|-----------------|
+| Launch new markets quickly | Multi-region deployment automation | 80% faster time-to-market |
+| Ensure rider/driver safety | 99.9%+ uptime, <15min incident response | Trust and retention |
+| Scale during peak demand | Auto-scaling, load balancing | Revenue protection during surges |
+| Regulatory compliance | Automated policy enforcement, audit trails | Risk mitigation, legal readiness |
+| Control operational costs | Cost monitoring, budget alerts, optimization | Predictable unit economics |
+
+---
+
+## Purpose & Value Proposition
+
+### Why This Repository Exists
+
+The ChaufHER Infra repository solves critical business and technical challenges:
+
+#### Business Challenges Solved
+
+1. **Market Expansion Speed**: Deploy new regional infrastructure in hours, not weeks
+2. **Operational Risk**: Reduce security incidents and downtime through automation
+3. **Cost Predictability**: Eliminate surprise cloud bills with proactive monitoring
+4. **Regulatory Readiness**: Built-in compliance controls for data protection regulations
+5. **Team Productivity**: Self-service infrastructure for development teams
+
+#### Technical Challenges Solved
+
+1. **Configuration Drift**: Automated detection and remediation of infrastructure changes
+2. **Environment Consistency**: Identical dev/staging/prod setups eliminate "works on my machine"
+3. **Security Governance**: Codified security policies prevent misconfigurations
+4. **Disaster Recovery**: Tested, automated failover procedures
+5. **Operational Visibility**: Real-time dashboards for health, cost, and compliance
+
+### Example Business Scenario
+
+**Situation**: Product team needs to launch a new "scheduled rides" feature requiring additional database capacity and caching infrastructure.
+
+**Traditional Approach** (Manual):
+- 2 weeks: Submit infrastructure request, wait for provisioning
+- 3 days: Manual configuration, testing, security review
+- High risk: Configuration errors, security gaps, cost overruns
+
+**ChaufHER Infra Approach** (Automated):
+- 2 hours: Developer submits PR with infrastructure requirements
+- 30 minutes: Automated validation, security scan, cost estimate
+- 15 minutes: Approved deployment to dev environment
+- 1 day: Validated promotion to production
+- Low risk: Automated compliance, tested patterns, cost controls
+
+**Business Impact**: 90% faster delivery, 70% fewer incidents, predictable costs
+
+---
+
+## Target Audience
+
+### Primary Users
+
+#### DevOps Engineers
+- **Daily Activities**: Define infrastructure, build pipelines, monitor system health
+- **Key Needs**: Clear patterns, automation tools, operational visibility
+- **Success Metrics**: Deployment frequency, incident response time, cost efficiency
+
+#### Backend Developers
+- **Daily Activities**: Request infrastructure for new features, troubleshoot integration issues
+- **Key Needs**: Self-service provisioning, clear documentation, environment parity
+- **Success Metrics**: Time to provision resources, environment reliability
+
+### Secondary Users
+
+#### Product Leadership
+- **Key Interests**: Time-to-market, operational costs, risk exposure
+- **Information Needs**: Deployment velocity, uptime metrics, cost trends
+- **Decision Support**: Capacity planning, regional expansion readiness
+
+#### Security & Compliance
+- **Key Interests**: Governance posture, audit readiness, incident response
+- **Information Needs**: Policy compliance, security events, access controls
+- **Decision Support**: Risk assessments, compliance reporting
+
+#### New Engineers (Onboarding)
+- **Key Needs**: Clear structure, getting-started guides, best practices
+- **Success Metrics**: Time to first contribution, understanding of patterns
+
+### Market Segments
+
+This infrastructure approach serves:
+- **Ride-sharing platforms** requiring real-time, safety-critical operations
+- **Multi-tenant SaaS** needing strong isolation and compliance
+- **Regulated industries** requiring audit trails and policy enforcement
+- **High-growth startups** balancing agility with operational maturity
+
+---
+
+## Expected Outcomes & KPIs
+
+### Business Outcomes
+
+#### Reliability & Availability
+- **Target**: 99.9% uptime (43 minutes downtime/month maximum)
+- **Measurement**: Azure Monitor uptime dashboards, incident logs
+- **Business Impact**: Customer trust, revenue protection, brand reputation
+
+#### Operational Agility
+- **Target**: Deploy infrastructure changes in <1 hour
+- **Measurement**: Pipeline execution time, PR merge-to-deploy duration
+- **Business Impact**: Faster feature delivery, competitive advantage
+
+#### Cost Predictability
+- **Target**: <5% monthly cost variance from forecast
+- **Measurement**: Azure Cost Management dashboards, budget alerts
+- **Business Impact**: Accurate financial planning, improved unit economics
+
+#### Security & Compliance
+- **Target**: <30 minute incident response time, zero policy violations
+- **Measurement**: Incident logs, Azure Policy compliance reports
+- **Business Impact**: Regulatory readiness, reduced legal risk
+
+#### Team Productivity
+- **Target**: 80% reduction in manual infrastructure tasks
+- **Measurement**: Time tracking, automation coverage metrics
+- **Business Impact**: Engineering focus on product features
+
+### Key Performance Indicators
+
+| Category | KPI | Target | Measurement |
+|----------|-----|--------|-------------|
+| **Reliability** | System Uptime | 99.9%+ | Azure Monitor |
+| **Reliability** | Mean Time to Recovery | <15 min | Incident logs |
+| **Agility** | Deployment Frequency | 10+/day | Pipeline metrics |
+| **Agility** | Time to Rollback | <15 min | Pipeline logs |
+| **Cost** | Monthly Cost Variance | <5% | Cost Management |
+| **Cost** | Cost per Transaction | Decreasing | Custom metrics |
+| **Security** | Incident Response Time | <30 min | Incident logs |
+| **Security** | Policy Compliance | 100% | Azure Policy |
+| **Quality** | Failed Deployment Rate | <5% | Pipeline metrics |
+| **Quality** | Configuration Drift | 0 instances | Drift detection |
+
+### Success Metrics Dashboard
+
+Live dashboards track these metrics in real-time:
+- **Executive Dashboard**: Uptime, cost trends, incident summary
+- **Operations Dashboard**: Deployment status, resource health, alerts
+- **Cost Dashboard**: Spend by service, forecast vs. actual, optimization opportunities
+- **Security Dashboard**: Policy compliance, access reviews, security events
+
+---
+
+## Operational Excellence
+
+### Service Level Objectives (SLOs)
+
+| Service | Availability SLO | Latency SLO | Error Rate SLO |
+|---------|-----------------|-------------|----------------|
+| API Gateway | 99.9% | p95 <200ms | <0.1% |
+| Database | 99.95% | p95 <50ms | <0.01% |
+| Real-time (SignalR) | 99.5% | p95 <500ms | <1% |
+| Static Assets (CDN) | 99.99% | p95 <100ms | <0.1% |
+
+### Incident Response
+
+#### Response Time Commitments
+
+| Severity | Description | Response Time | Resolution Target |
+|----------|-------------|---------------|-------------------|
+| P1 (Critical) | Complete service outage | 15 minutes | 1 hour |
+| P2 (High) | Degraded service, partial outage | 30 minutes | 4 hours |
+| P3 (Medium) | Minor feature impact | 4 hours | 24 hours |
+| P4 (Low) | Cosmetic, no user impact | 24 hours | 1 week |
+
+### Business Continuity
+
+#### Disaster Recovery
+
+- **RTO (Recovery Time Objective)**: 1 hour
+- **RPO (Recovery Point Objective)**: 15 minutes
+- **DR Testing**: Quarterly full failover drills
+- **Geographic Redundancy**: Primary (East US) + Secondary (West US 2)
+
+#### Backup Strategy
+
+| Resource Type | Backup Frequency | Retention | Recovery Testing |
+|---------------|------------------|-----------|------------------|
+| Databases | Continuous (15min RPO) | 35 days | Monthly |
+| Configuration | On every change | 90 days | Quarterly |
+| Secrets | Versioned (all versions) | Indefinite | Monthly |
+| Infrastructure State | Daily | 90 days | Quarterly |
+
+---
+
+# Architecture & Design
+
+## Design Philosophy
+
+### Core Principles
+
+#### 1. Infrastructure as Code (IaC)
+- **All infrastructure is version-controlled code**
+- No manual changes in production environments
+- Every change is reviewable, testable, and reversible
+- Enables audit trails and compliance documentation
+
+#### 2. Security by Default
+- **Least-privilege access** for all resources and identities
+- Secrets never in source code (Key Vault only)
+- Encryption at rest and in transit (mandatory)
+- Network isolation via private endpoints and NSGs
+
+#### 3. Environment Parity
+- **Dev, staging, and prod are identical** (except scale)
+- Same code deploys to all environments
+- Reduces "works in staging" production failures
+- Parameterized for environment-specific values only
+
+#### 4. Automation First
+- **Manual processes are technical debt**
+- Automated validation, deployment, and remediation
+- Self-healing infrastructure where possible
+- Runbooks for non-automatable procedures
+
+#### 5. Observable & Auditable
+- **Every action is logged and traceable**
+- Real-time dashboards for operational visibility
+- Audit logs for compliance and forensics
+- Correlation IDs across all systems
+
+### Design Patterns
+
+#### Modular Architecture
+- Reusable Bicep/Terraform modules for common resources
+- Composable building blocks (networking, compute, data, monitoring)
+- DRY principle: Define once, use everywhere
+
+#### Immutable Infrastructure
+- Replace rather than modify resources
+- Blue-green deployments for zero-downtime updates
+- Rollback = deploy previous version
+
+#### Policy as Code
+- Azure Policy definitions in source control
+- Automated compliance checking in CI/CD
+- Preventive controls (deny non-compliant resources)
+
+---
+
+## Architectural Overview
+
+### High-Level System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         ChaufHER Platform                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Mobile Apps │────▶│  API Gateway │────▶│   Backend    │
+│ (iOS/Android)│     │  (App Service│     │   Services   │
+└──────────────┘     │   + CDN)     │     │ (App Service)│
+                     └──────────────┘     └──────┬───────┘
+                                                  │
+                     ┌────────────────────────────┼────────────┐
+                     │                            │            │
+                ┌────▼────┐              ┌───────▼──────┐ ┌──▼──────┐
+                │ Database│              │ SignalR      │ │  Cache  │
+                │(Postgres│              │(Real-time)   │ │ (Redis) │
+                │  + CosmosDB)           └──────────────┘ └─────────┘
+                └─────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    Cross-Cutting Concerns                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Key Vault  │  Monitoring  │  Networking  │  Identity (AAD)    │
+│  (Secrets)  │ (App Insights│   (VNet/NSG) │  (RBAC/B2C)        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Infrastructure Data Flow
+
+```
+┌──────────────┐
+│  Developer   │
+│  Creates PR  │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    CI/CD Pipeline                             │
+├──────────────────────────────────────────────────────────────┤
+│  1. Lint & Validate  │  2. Security Scan  │  3. Policy Check │
+│  4. Cost Estimate    │  5. Plan (Dry Run) │  6. Peer Review  │
+└──────────────────────┬───────────────────────────────────────┘
+                       │ (Approval Required)
+                       ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  Deployment Pipeline                          │
+├──────────────────────────────────────────────────────────────┤
+│  1. Apply Changes    │  2. Update RBAC    │  3. Rotate Secrets│
+│  4. Smoke Tests      │  5. Update Dashboards                 │
+└──────────────────────┬───────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────────────────────┐
+│                   Azure Resources                             │
+├──────────────────────────────────────────────────────────────┤
+│  App Services  │  Databases  │  Networking  │  Monitoring    │
+└──────────────────────┬───────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────────────────────┐
+│              Monitoring & Alerting                            │
+├──────────────────────────────────────────────────────────────┤
+│  Dashboards  │  Alerts  │  Audit Logs  │  Cost Reports      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Regional Architecture
+
+#### Multi-Region Deployment
+
+```
+Primary Region (East US)          Secondary Region (West US 2)
+┌─────────────────────┐           ┌─────────────────────┐
+│   Active Services   │◄─────────▶│  Standby Services   │
+│   - API Gateway     │  Geo-Repl │   - API Gateway     │
+│   - App Services    │           │   - App Services    │
+│   - Databases       │           │   - Databases       │
+└─────────────────────┘           └─────────────────────┘
+         │                                  │
+         └──────────┬───────────────────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │   Traffic Manager    │
+         │  (Global Load Bal.)  │
+         └──────────────────────┘
+```
+
+---
+
+## System Interfaces
+
+### Azure Services Integration
+
+| Service | Purpose | Configuration | Monitoring |
+|---------|---------|---------------|------------|
+| **Azure App Service** | Host backend APIs and web apps | Auto-scaling, deployment slots | App Insights, health probes |
+| **Azure Static Web Apps** | Serve client applications | CDN integration, custom domains | CDN analytics, availability |
+| **Azure Key Vault** | Secrets and certificate management | RBAC, soft-delete, purge protection | Access logs, rotation alerts |
+| **Azure Database for PostgreSQL** | Primary relational database | HA, geo-replication, backups | Query performance, connections |
+| **Azure Cosmos DB** | NoSQL for real-time data | Multi-region writes, consistency | RU consumption, latency |
+| **Azure Cache for Redis** | Session and data caching | Clustering, persistence | Hit rate, memory usage |
+| **Azure SignalR Service** | Real-time WebSocket connections | Auto-scaling, sticky sessions | Connection count, latency |
+| **Azure CDN** | Static asset delivery | Caching rules, compression | Cache hit ratio, bandwidth |
+| **Azure Monitor** | Centralized logging and metrics | Log Analytics workspace | Alert rules, dashboards |
+| **Azure Application Insights** | APM and distributed tracing | Auto-instrumentation | Performance, exceptions |
+
+### External Integrations
+
+| Service | Purpose | Authentication | Secrets Location |
+|---------|---------|----------------|------------------|
+| **Twilio** | SMS notifications | API key | Key Vault |
+| **SendGrid** | Email delivery | API key | Key Vault |
+| **Stripe** | Payment processing | API key + webhook secret | Key Vault |
+| **Google Maps API** | Geocoding and routing | API key | Key Vault |
+| **Firebase (FCM)** | Push notifications (Android) | Service account JSON | Key Vault |
+| **Apple APNs** | Push notifications (iOS) | Certificate + key | Key Vault |
+
+### API Contracts
+
+All backend APIs follow OpenAPI 3.0 specification:
+- **Base Path**: Environment-specific URLs (documented in environment configs)
+- **Versioning**: Major version in URL path (v1, v2)
+- **Authentication**: JWT Bearer tokens (Azure AD B2C)
+- **Rate Limiting**: Configurable per environment
+- **Documentation**: Auto-generated from code annotations
+
+---
+
+## Infrastructure Patterns
+
+### Environment Separation
+
+#### Resource Naming Convention
+
+Pattern: `{product}-{environment}-{service}-{region}`
+
+Examples:
+- chaufher-prod-api-eastus
+- chaufher-staging-db-westus2
+- chaufher-dev-kv-eastus
+
+#### Environment Configuration
+
+| Environment | Purpose | Scale | Data | Access |
+|-------------|---------|-------|------|--------|
+| **dev** | Feature development | Minimal (1 instance) | Synthetic | All developers |
+| **staging** | Pre-production testing | Production-like (2 instances) | Scrubbed prod copy | QA + DevOps |
+| **prod** | Live customer traffic | Auto-scaling (3-50 instances) | Real customer data | DevOps + On-call |
+| **PR-{number}** | Ephemeral PR testing | Minimal (1 instance) | Synthetic | PR author only |
+
+### Security Patterns
+
+#### Network Security
+
+```
+Internet
+   │
+   ▼
+┌─────────────────┐
+│  Azure Firewall │  ◄── WAF rules, DDoS protection
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  App Gateway    │  ◄── TLS termination, routing
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│         VNet (10.0.0.0/16)          │
+│  ┌──────────────────────────────┐   │
+│  │  App Subnet (10.0.1.0/24)    │   │
+│  │  - App Services              │   │
+│  └──────────────────────────────┘   │
+│  ┌──────────────────────────────┐   │
+│  │  Data Subnet (10.0.2.0/24)   │   │
+│  │  - Databases (Private Link)  │   │
+│  └──────────────────────────────┘   │
+└─────────────────────────────────────┘
+```
+
+#### Identity & Access Management
+
+```
+┌──────────────────┐
+│  Azure AD B2C    │  ◄── User authentication
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│  Service         │  ◄── Application identity
+│  Principals      │      (Managed Identity preferred)
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│  RBAC Roles      │  ◄── Least-privilege assignments
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│  Azure Resources │  ◄── Fine-grained access control
+└──────────────────┘
+```
+
+### Data Management Patterns
+
+#### Database Strategy
+
+| Data Type | Technology | Replication | Backup |
+|-----------|-----------|-------------|--------|
+| Transactional | PostgreSQL | Sync replica (same region) | Continuous (15min RPO) |
+| User profiles | Cosmos DB | Multi-region writes | Continuous |
+| Session state | Redis Cache | Persistence enabled | Daily snapshots |
+| Audit logs | Log Analytics | Geo-redundant | 90 days retention |
+| File storage | Blob Storage | GRS (geo-redundant) | Soft delete (30 days) |
+
+#### Secrets Management
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   Key Vault Hierarchy                 │
+├──────────────────────────────────────────────────────┤
+│                                                       │
+│  chaufher-shared-kv          ◄── Cross-env secrets   │
+│  ├── ssl-certificates                                │
+│  └── shared-api-keys                                 │
+│                                                       │
+│  chaufher-{env}-kv           ◄── Environment secrets │
+│  ├── database-connection-string                      │
+│  ├── jwt-signing-key                                 │
+│  └── external-api-keys                               │
+│                                                       │
+│  chaufher-{env}-{app}-kv     ◄── App-specific        │
+│  ├── app-specific-secret-1                           │
+│  └── app-specific-secret-2                           │
+│                                                       │
+└──────────────────────────────────────────────────────┘
+
+Access Pattern:
+- Managed Identity (preferred)
+- Service Principal (CI/CD only)
+- RBAC: Key Vault Secrets User (read-only)
+- Rotation: Automated every 90 days
+```
+
+---
+
+# Integration & Collaboration
+
+## App Integration & Alignment
+
+### Integration Architecture
+
+The infrastructure provides the foundation for mobile and web applications. Key integration points:
+
+#### 1. API Gateway & Backend Services
+
+**Infrastructure Provides:**
+- API Gateway with TLS termination
+- Load-balanced backend services
+- Health check endpoints
+- Rate limiting and throttling
+
+**App Requirements:**
+- Use documented base URL per environment
+- Implement exponential backoff for retries
+- Honor rate limit headers
+- Include correlation IDs in requests
+
+#### 2. Authentication & Authorization
+
+**Infrastructure Provides:**
+- Azure AD B2C tenant configuration
+- JWT signing keys (rotated automatically)
+- Token validation endpoints
+- RBAC policies for backend resources
+
+**App Requirements:**
+- Implement OAuth 2.0 / OIDC flow
+- Cache tokens securely (Keychain/Keystore)
+- Refresh tokens before expiry
+- Handle 401/403 responses gracefully
+
+#### 3. Real-Time Communication (SignalR)
+
+**Infrastructure Provides:**
+- SignalR service endpoints
+- WebSocket and long-polling fallback
+- Connection scaling and load balancing
+- Keepalive configuration
+
+**App Requirements:**
+- Implement automatic reconnection logic
+- Use correlation IDs for message tracing
+- Gracefully degrade to polling if WebSocket fails
+- Queue messages during offline periods
+
+#### 4. Push Notifications
+
+**Infrastructure Provides:**
+- FCM/APNs credentials in Key Vault
+- Notification hub configuration
+- Topic-based routing
+- Delivery tracking
+
+**App Requirements:**
+- Register device tokens on app launch
+- Handle notification permissions
+- Process background notifications
+- Update token on refresh
+
+#### 5. Telemetry & Monitoring
+
+**Infrastructure Provides:**
+- Application Insights instrumentation keys
+- Log Analytics workspace
+- Correlation ID propagation
+- Custom metrics endpoints
+
+**App Requirements:**
+- Emit structured logs with correlation IDs
+- Track custom events (user actions, errors)
+- Report performance metrics
+- Include environment context in telemetry
+
+#### 6. Feature Flags & Configuration
+
+**Infrastructure Provides:**
+- Azure App Configuration service
+- Feature flag definitions
+- Configuration refresh webhooks
+- Environment-specific overrides
+
+**App Requirements:**
+- Poll for configuration updates
+- Implement feature flag checks
+- Cache configuration locally
+- Handle missing/default values
+
+### Environment Variables & Endpoints
+
+Environment-specific configurations are documented in the `environments/` directory:
+- `environments/dev/` - Development environment configuration
+- `environments/staging/` - Staging environment configuration
+- `environments/prod/` - Production environment configuration
+
+Each environment includes:
+- API base URLs
+- SignalR endpoints
+- Authentication tenant information
+- Feature flag service URLs
+- Monitoring and telemetry keys
+
+### Integration Checklist
+
+For mobile engineers, see **[MOBILE_CHECKLIST.md](MOBILE_CHECKLIST.md)** for detailed integration steps.
+
+#### Quick Checklist
+
+- [ ] Configure environment-specific API endpoints
+- [ ] Implement JWT authentication with token refresh
+- [ ] Set up SignalR with reconnection logic
+- [ ] Register for push notifications (FCM/APNs)
+- [ ] Integrate Application Insights telemetry
+- [ ] Implement feature flag checks
+- [ ] Add correlation IDs to all requests
+- [ ] Test offline/degraded connectivity scenarios
+- [ ] Verify rate limiting behavior
+- [ ] Test failover to secondary region
+
+---
+
+## Choreography with App Repos
+
+### Cross-Repository Workflow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Development Workflow                        │
+└─────────────────────────────────────────────────────────────┘
+
+Step 1: Infrastructure Change Required
+┌──────────────┐
+│ Product Team │──▶ "We need Redis cache for new feature"
+└──────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────────┐
+│  chaufher-infra Repo                                      │
+├──────────────────────────────────────────────────────────┤
+│  1. DevOps creates PR: Add Redis module                  │
+│  2. CI validates, estimates cost                         │
+│  3. Review + approval                                    │
+│  4. Deploy to dev → staging → prod                       │
+│  5. Output: Connection string in Key Vault               │
+└──────────────────┬───────────────────────────────────────┘
+                   │
+                   ▼
+Step 2: App Integration
+┌──────────────────────────────────────────────────────────┐
+│  chaufher-app Repo                                        │
+├──────────────────────────────────────────────────────────┤
+│  1. Backend dev creates PR: Add Redis client             │
+│  2. Fetch connection string from Key Vault               │
+│  3. Implement caching logic                              │
+│  4. CI tests against dev environment                     │
+│  5. Deploy to staging → prod                             │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Triggering Infrastructure from App Repos
+
+#### Automated Infrastructure Provisioning
+
+Apps can declare infrastructure requirements using an `infra-requirements.json` file in their repository. When this file changes, it triggers infrastructure provisioning workflows.
+
+The requirements file specifies:
+- Required infrastructure version
+- Needed services (cache, storage, etc.)
+- Environment-specific configurations
+- Resource specifications
+
+### Environment Promotion Flow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│     Dev     │────▶│   Staging   │────▶│    Prod     │
+└─────────────┘     └─────────────┘     └─────────────┘
+      │                    │                    │
+      │ Auto-promote       │ Manual approval    │
+      │ on PR merge        │ + smoke tests      │
+      │                    │                    │
+
+Infra:  Deploy new     Validate infra     Production
+        resources      + run load tests   deployment
+        ↓                    ↓                  ↓
+App:    Deploy app     Integration tests  Staged rollout
+        to use new     with new infra     (10% → 50% → 100%)
+        resources
+```
+
+### Promotion Process
+
+Infrastructure promotion follows a controlled workflow:
+
+1. **Development**: Automatic deployment on PR merge
+2. **Staging**: Requires validation and smoke tests
+3. **Production**: Requires manual approval and compliance checks
+
+The promotion script validates:
+- Environment health
+- Compliance requirements
+- Cost impact
+- Security posture
+
+### Deployment Gating
+
+Infrastructure version requirements can gate app deployments to ensure compatibility. App repositories can specify minimum infrastructure versions, and deployment pipelines verify these requirements before proceeding.
+
+---
+
+# Operations & Support
+
+## Contact / Support
+
+### Maintainer
+
+**Hans Jurgens Smit** - Platform Lead & Infrastructure Owner
+- **Email**: hans@chaufher.app
+- **GitHub**: @hansjsmit
+- **Response Time**: Best effort (24-48 hours for non-urgent)
+
+### Getting Help
+
+**Infrastructure Questions:**
+1. Check [Documentation Index](#documentation-index)
+2. Review existing issues in GitHub
+3. Create new issue with template
+
+**Deployment Issues:**
+1. Check CI/CD Status Badges
+2. Review pipeline logs in GitHub Actions
+3. Create issue with error details and PR link
+
+**Feature Requests:**
+1. Create issue with label `enhancement`
+2. Describe business need and use case
+3. Include any relevant examples or references
+
+---
+
+## Operational Runbooks
+
+### Runbook Index
+
+All runbooks are located in `docs/runbooks/` with step-by-step procedures:
+
+| Scenario | Runbook | Automation Script | Frequency |
+|----------|---------|------------------|-----------|
+| **Configuration Drift** | [drift-detection.md](docs/runbooks/drift-detection.md) | `drift-detection.sh` | Daily (automated) |
+| **Rollback Deployment** | [rollback.md](docs/runbooks/rollback.md) | `rollback.sh` | As needed |
+| **Failover to Secondary Region** | [failover.md](docs/runbooks/failover.md) | `failover-test.sh` | Quarterly (drill) |
+| **Secret Rotation** | [secret-rotation.md](docs/runbooks/secret-rotation.md) | `rotate-secrets.sh` | Every 90 days |
+| **Scale Resources** | [scaling.md](docs/runbooks/scaling.md) | `scale.sh` | As needed |
+| **Incident Response** | [incident-response.md](docs/runbooks/incident-response.md) | Manual | During incidents |
+| **Cost Spike Investigation** | [cost-investigation.md](docs/runbooks/cost-investigation.md) | `cost-analyze.sh` | As needed |
+| **Security Incident** | [security-incident.md](docs/runbooks/security-incident.md) | Manual | During incidents |
+| **DR Drill** | [dr-drill.md](docs/runbooks/dr-drill.md) | `dr-drill.sh` | Quarterly |
+| **Onboard New Service** | [onboard-service.md](docs/runbooks/onboard-service.md) | Semi-automated | As needed |
+
+### Common Operations
+
+#### Drift Detection
+
+Automated daily checks identify configuration drift between deployed infrastructure and source code definitions. Drift detection reports show resources that differ from code definitions, specific configuration changes, and remediation recommendations. Remediation can be automated or manual based on change severity.
+
+#### Rollback Procedures
+
+Infrastructure rollback capabilities include listing available rollback points (tagged versions), rollback to specific version, and emergency rollback (expedited process for critical issues). All rollbacks are logged and require appropriate approvals based on environment.
+
+#### Failover Testing
+
+Regular failover testing validates disaster recovery readiness through non-disruptive testing to secondary region, DR readiness validation, and full DR drills (quarterly with stakeholder notification).
+
+#### Secret Rotation
+
+Automated secret rotation occurs every 90 days with advance notification (14 days before expiry), automated rotation for supported secret types, manual rotation procedures for complex secrets, and rotation status tracking and reporting.
+
+#### Scaling Operations
+
+Infrastructure scaling supports vertical scaling (tier changes), horizontal scaling (instance count), auto-scaling configuration, and scaling status monitoring.
+
+---
+
+## Security & Compliance
+
+### Security Framework
+
+ChaufHER infrastructure implements defense-in-depth security across five layers:
+
+1. **Network Security**: Azure Firewall with WAF rules, DDoS Protection, NSGs, Private Endpoints
+2. **Identity & Access**: Azure AD B2C, Managed Identities, RBAC with least-privilege, Conditional Access
+3. **Data Protection**: Encryption at rest and in transit (TLS 1.2+), Key Vault secrets management, Database TDE
+4. **Application Security**: Input validation, OWASP Top 10 mitigations, Security headers, Rate limiting
+5. **Monitoring & Response**: Azure Defender, SIEM, Automated threat detection, Incident response procedures
+
+### Secrets Management
+
+**Key Vault Hierarchy:**
+- `chaufher-shared-kv`: Cross-environment secrets (Platform Lead only, manual rotation)
+- `chaufher-{env}-kv`: Environment-specific secrets (Environment RBAC, 90-day automated rotation)
+- `chaufher-{env}-{app}-kv`: Application-specific secrets (Managed Identity access, 90-day rotation)
+
+**Secret Lifecycle:** Creation → Storage (encrypted, versioned) → Access (RBAC enforced, audit logged) → Rotation (automated every 90 days, 14-day advance alerts) → Expiration → Deletion (90-day soft-delete)
+
+**Secret Detection:** Pre-commit hooks, CI/CD pipeline blocks, regular repository scans using Gitleaks and TruffleHog, automated remediation for detected secrets.
+
+### Compliance & Auditing
+
+| Framework | Status | Evidence Location | Audit Frequency |
+|-----------|--------|-------------------|-----------------|
+| **SOC 2 Type II** | In progress | `docs/compliance/soc2/` | Annual |
+| **GDPR** | Compliant | `docs/compliance/gdpr/` | Continuous |
+| **ISO 27001** | Planned | N/A | TBD |
+
+**Audit Logging:** All infrastructure changes logged with Who (User/Service Principal), What (action), When (UTC timestamp), Where (region/resource group), Why (PR/issue link), and How (deployment method).
+
+**Compliance Reporting:** Automated reports include Azure Policy compliance, Security Center recommendations, access reviews, encryption status, backup validation, and incident summaries.
+
+### Security Scanning
+
+| Tool | Scope | Frequency | Blocking |
+|------|-------|-----------|----------|
+| **Checkov** | IaC security misconfigurations | Every PR | Yes |
+| **Trivy** | Container vulnerabilities | Every PR | Yes (high/critical) |
+| **Gitleaks** | Secret detection | Every commit | Yes |
+| **Azure Defender** | Runtime threats | Continuous | Alert only |
+| **Dependabot** | Dependency vulnerabilities | Daily | Alert only |
+
+**Manual Reviews:** Architecture review before major launches, annual penetration testing, quarterly access reviews, post-mortems after P1/P2 security incidents.
+
+---
+
+## Policy & Governance
+
+### Azure Policy Enforcement
+
+Policies are organized by category and enforcement level:
+
+| Category | Enforcement | Examples |
+|----------|-------------|----------|
+| **Tagging** | Deny | environment, owner, cost-center (required) |
+| **Security** | Deny | HTTPS only, TLS 1.2+, no public storage |
+| **Compliance** | Deny | Allowed regions, encryption required |
+| **Cost Control** | Audit | Allowed SKUs, resource limits |
+| **Operational** | Audit | Diagnostic settings, backup enabled |
+
+**Policy Location:** All policies defined in `policies/` directory (tagging, security, cost, compliance, exceptions)
+
+**Exception Process:** Create issue → Document justification → Get approval → Add to `policies/exceptions.json` with expiry → Link in PR
+
+### Cost Management
+
+**Framework:** Per-environment budgets with warning and critical thresholds, automated alerts, and deployment blocks at critical levels.
+
+**Alerts:** Daily spike detection (20%+ increase), budget warnings (advance notification), critical alerts (leadership escalation + blocks)
+
+**Optimization:** Regular analysis of cost drivers, identification of optimization opportunities (reserved instances, right-sizing), impact estimation for changes, baseline comparisons
+
+**Allocation:** Resources tagged with environment, owner, cost-center, project, and optional feature tags for granular tracking
+
+**Governance Dashboard:** Real-time metrics via Azure Cost Management, Policy compliance dashboard, Security posture (Defender), and Resource inventory (Resource Graph)
+
+---
+
+# Developer Guide
 
 ## Getting Started
 
 ### Prerequisites
 
-1. **Azure CLI** (v2.50+): Install from [aka.ms/installazurecli](https://aka.ms/installazurecli)
-2. **Bicep CLI** (v0.20+): `az bicep install` or standalone from [Bicep releases](https://github.com/Azure/bicep/releases)
-3. **Terraform** (optional, v1.5+): If using Terraform modules, install from [terraform.io](https://www.terraform.io/downloads)
-4. **GitHub CLI** (optional): `gh` for PR and workflow automation
-5. **Service Principal**: An Azure AD service principal with Contributor role on target subscriptions
+| Tool | Version | Installation |
+|------|---------|--------------|
+| **Azure CLI** | v2.50+ | [aka.ms/installazurecli](https://aka.ms/installazurecli) |
+| **Bicep CLI** | v0.20+ | `az bicep install` |
+| **Terraform** (optional) | v1.5+ | [terraform.io](https://www.terraform.io/downloads) |
+| **GitHub CLI** (optional) | Latest | [cli.github.com](https://cli.github.com/) |
+| **Git** | v2.30+ | [git-scm.com](https://git-scm.com/) |
 
 ### Initial Setup
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/phoenixvc/chaufher-infra.git
-cd chaufher-infra
+1. **Clone Repository**: Clone the repository and navigate to the project directory
+2. **Azure Authentication**: Authenticate with Azure CLI and set your default subscription
+3. **Service Principal Setup**: For CI/CD automation, create a service principal with appropriate permissions and store credentials securely in GitHub Secrets
+4. **Verify Tools**: Verify all required tools are installed and up-to-date
+5. **Install Pre-Commit Hooks**: Install pre-commit hooks to validate changes before committing
 
-# 2. Login to Azure
-az login
-az account set --subscription "<SUBSCRIPTION_ID>"
+### Local Validation
 
-# 3. Verify Bicep installation
-az bicep version
+**Quick Validation:** Validate all Bicep templates using the Azure CLI
 
-# 4. Set up service principal (if not already done)
-az ad sp create-for-rbac --name "chaufher-infra-sp" --role Contributor \
-  --scopes /subscriptions/<SUBSCRIPTION_ID> --sdk-auth
-```
+**Comprehensive Validation:** Run the complete validation suite including Bicep linting, Terraform linting (if applicable), YAML linting, security scanning, and secret detection
 
-### Local Validation (One-Liner)
+### Quick Deploy to Dev
 
-Run this to validate all Bicep templates before pushing:
+**Using Deployment Script (Recommended):** Use the provided deployment script which handles template validation, security scanning, cost estimation, deployment execution, smoke testing, and output reporting.
 
-```bash
-# Validate all Bicep files
-find . -name "*.bicep" -exec az bicep build --file {} \;
-```
-
-### Quick Deploy (Crash-Step)
-
-```bash
-# Build and deploy to dev environment
-az bicep build --file ./modules/main.bicep
-
-az deployment group create \
-  --resource-group chaufher-dev-rg \
-  --template-file ./modules/main.bicep \
-  --parameters @./environments/dev/parameters.json
-```
+**Manual Deployment:** Build Bicep templates, create deployment with appropriate parameters, monitor deployment progress, and verify resource provisioning.
 
 ### Required Permissions
 
@@ -144,13 +1028,11 @@ chaufher-infra/
 ### PR Requirements
 
 1. **PR Template**: Fill out all sections in `.github/PULL_REQUEST_TEMPLATE.md`
-2. **Required Reviewers**:
-   - At least 1 DevOps engineer
-   - At least 1 security review for `prod/` changes
+2. **Required Reviewers**: At least 1 reviewer (maintainer for prod changes)
 3. **Gating Rules**:
    - [ ] All CI checks pass (lint, plan, security scan)
    - [ ] Policy checks pass (Azure Policy compliance)
-   - [ ] Cost estimate within threshold (< 10% increase)
+   - [ ] Cost estimate within acceptable threshold
    - [ ] Smoke tests pass for environment changes
    - [ ] No secrets detected in code
 
@@ -160,7 +1042,7 @@ To request a policy exception:
 
 1. Create an issue with label `policy-exception`
 2. Document the business justification
-3. Get approval from Security Lead and Platform Owner
+3. Get approval from maintainer
 4. Add exception to `policies/exceptions.json` with expiry date
 5. Link the exception issue in your PR
 
@@ -178,286 +1060,96 @@ To request a policy exception:
 
 ### Plan & Apply Pipelines
 
-```bash
-# Run plan locally (dry-run)
-./scripts/deploy.sh --env dev --action plan
-
-# Apply changes (requires approval in pipeline)
-./scripts/deploy.sh --env dev --action apply
-
-# Plan for production (extra validations)
-./scripts/deploy.sh --env prod --action plan --strict
-```
+Deployment scripts support multiple actions:
+- **Plan**: Dry-run to preview changes
+- **Apply**: Execute infrastructure changes
+- **Strict mode**: Additional validations for production
 
 ### Run Linting Locally
 
-```bash
-# Bicep linting
-az bicep lint --file ./modules/main.bicep
-
-# Terraform linting (if applicable)
-cd modules/terraform && tflint --init && tflint
-
-# All linters via script
-./scripts/lint-all.sh
-```
+Linting tools validate Bicep syntax and best practices, Terraform formatting and validation, YAML structure, and security misconfigurations.
 
 ### Policy Checks
 
-```bash
-# Run Azure Policy compliance check
-./scripts/policy-check.sh --env dev
-
-# Run OPA policy evaluation
-opa eval --data ./policies/ --input ./environments/dev/parameters.json "data.chaufher.allow"
-
-# Checkov security scan
-checkov -d ./modules/ --framework bicep
-```
+Policy validation includes Azure Policy compliance checking, OPA policy evaluation, and security scanning with Checkov.
 
 ### Smoke Tests
 
-```bash
-# Run post-deployment smoke tests
-./scripts/smoke-test.sh --env dev
-
-# Test specific module
-./scripts/smoke-test.sh --env dev --module app-service
-```
+Post-deployment validation: run complete smoke test suite, test specific modules, verify resource health and connectivity.
 
 ### CI Job Equivalents
 
 | Local Command | CI Job |
 |---------------|--------|
-| `./scripts/lint-all.sh` | `lint.yml` workflow |
-| `./scripts/policy-check.sh` | `policy.yml` workflow |
-| `./scripts/deploy.sh --action plan` | `deploy.yml` (plan stage) |
-| `checkov -d ./modules/` | `security.yml` workflow |
+| Lint script | `lint.yml` workflow |
+| Policy check script | `policy.yml` workflow |
+| Deploy plan | `deploy.yml` (plan stage) |
+| Security scan | `security.yml` workflow |
 
 ---
 
-## Security & Secret Handling
+## Testing & Validation
 
-### Key Vault Patterns
+### Testing Strategy
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| Environment-scoped | Per-env secrets | `chaufher-{env}-kv` |
-| Application-scoped | App-specific secrets | `chaufher-{env}-api-kv` |
-| Shared services | Cross-app secrets | `chaufher-shared-kv` |
+- **Policy-as-Code**: Azure Policies and OPA gate workflows; non-compliant PRs blocked automatically
+- **Smoke Testing**: Synthetic probes validate newly provisioned resources; post-deployment health checks
+- **Failover Drills**: Regular tabletop exercises, automated recovery scenarios, rollback validation, cross-region testing
+- **Environment Parity**: Automated consistency checks across dev/staging/prod; configuration drift detection
 
-### Least-Privilege Access
+### Testing Tools & Approaches
 
-```bicep
-// Example: Granting minimal Key Vault access
-resource keyVaultAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, principalId, 'Key Vault Secrets User')
-  scope: keyVault
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
-    principalId: principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-```
+- **Linting**: tflint, bicep lint, checkov for code quality
+- **Security Scanning**: Trivy, Azure Defender for Cloud for vulnerabilities
+- **Secret Detection**: Gitleaks, TruffleHog for credential protection
+- **Plan-and-Destroy**: Ensures idempotent operations
+- **Cost Regression**: Prevents accidental cost spikes
+- **Cross-Region Testing**: DR and failover scenario validation
 
-### Secret Rotation Policy
+### Testing Environments
 
-- **Rotation Frequency**: Every 90 days (automated)
-- **Notification**: 14 days before expiry via Azure Monitor alert
-- **Automation**: `./scripts/rotate-secrets.sh` or scheduled pipeline
-
-```bash
-# Manual secret rotation
-./scripts/rotate-secrets.sh --vault chaufher-dev-kv --secret api-key
-
-# Check rotation status
-az keyvault secret list --vault-name chaufher-dev-kv --query "[].{name:name,expires:attributes.expires}"
-```
-
-### Secret Detection
-
-```bash
-# Pre-commit hook runs automatically, or run manually:
-./scripts/secret-scan.sh
-
-# Using gitleaks
-gitleaks detect --source . --verbose
-
-# Using truffleHog
-trufflehog filesystem . --only-verified
-```
-
-### Critical Rules
-
-> **NEVER commit secrets to source control.**
-> - Use Key Vault references in Bicep: `@Microsoft.KeyVault(SecretUri=...)`
-> - Use GitHub Secrets for CI/CD credentials
-> - Run `./scripts/secret-scan.sh` before every commit
-> - Pre-commit hooks block pushes containing detected secrets
+- **Segregation**: Isolated resource groups and credentials per environment
+- **Ephemeral**: PR-specific environments for complex tests
+- **Data Handling**: Non-production uses scrubbed or synthetic data
+- **DR Validation**: Scripts deployed and tested in all environments
 
 ---
 
-## Policy, Cost & Compliance
+## Deployment Guide
 
-### Policy Definitions
+### Pipeline Flow
 
-Policies are defined in `policies/` and enforced via Azure Policy:
+1. **Code Review**: PR triggers plan and compliance check
+2. **Approval**: Maintainer approval required before apply
+3. **Apply**: Gated pipeline applies changes to target environment
+4. **Staged Rollout**: For high-impact resources, apply changes in waves
+5. **Validation**: Post-apply scripts and dashboards confirm correctness
+6. **Rollback Guidance**: Automated reversion using previous pipeline state
+7. **Environment Promotion**: Successful changes promoted upward
 
-| Policy | File | Enforcement |
-|--------|------|-------------|
-| Required tags | `tagging-policies.json` | Deny |
-| Allowed regions | `security-policies.json` | Deny |
-| Allowed SKUs | `cost-policies.json` | Audit |
-| Key Vault soft-delete | `security-policies.json` | Deny |
-| HTTPS only | `security-policies.json` | Deny |
+### Deployment Environment
 
-### Cost Checks
+- **Azure Account Hierarchy**: Separate subscriptions/management groups per environment
+- **Resource Groups**: Scoped by environment and domain
+- **Key Vault**: Dedicated vault per environment
+- **Access Control**: Contributor/Reader/Owner roles mapped to workflow stages
+- **High Availability**: Critical infra deployed in multiple zones/regions
+- **Disaster Recovery**: DR-ready environments with validated runbooks
 
-Run cost estimation before merging:
+### Deployment Tools
 
-```bash
-# Estimate cost impact
-./scripts/cost-estimate.sh --env dev --template ./modules/main.bicep
+- **IaC Frameworks**: Bicep (primary), Terraform and ARM templates (as needed)
+- **Pipeline Orchestration**: GitHub Actions
+- **Shared Scripts**: Library of PowerShell/Bash scripts
+- **Admin Dashboards**: Real-time oversight and validation
 
-# Compare against baseline
-./scripts/cost-compare.sh --baseline ./costs/baseline-dev.json
-```
+### Post-Deployment Verification
 
-### Cost Thresholds
-
-| Environment | Monthly Budget | Alert at | Block at |
-|-------------|---------------|----------|----------|
-| dev | $500 | 80% | 100% |
-| staging | $1,000 | 80% | 100% |
-| prod | $5,000 | 70% | 90% |
-
-### Alert Definitions
-
-```json
-{
-  "alerts": [
-    {
-      "name": "cost-spike-alert",
-      "threshold": "20% daily increase",
-      "action": "notify-slack"
-    },
-    {
-      "name": "budget-warning",
-      "threshold": "80% of monthly budget",
-      "action": "notify-email"
-    },
-    {
-      "name": "budget-critical",
-      "threshold": "95% of monthly budget",
-      "action": "block-deployments"
-    }
-  ]
-}
-```
-
-### Running Compliance Reports
-
-```bash
-# Generate compliance report
-./scripts/compliance-report.sh --env prod --output ./reports/
-
-# View Azure Policy compliance
-az policy state summarize --resource-group chaufher-prod-rg
-```
-
----
-
-## Contact / Support
-
-### Maintainers
-
-| Role | Name | Contact |
-|------|------|---------|
-| Platform Lead | @platform-lead | platform-lead@chaufher.app |
-| Security Lead | @security-lead | security@chaufher.app |
-| DevOps On-Call | Rotating | devops-oncall@chaufher.app |
-
-### Communication Channels
-
-| Channel | Purpose | Response SLA |
-|---------|---------|--------------|
-| `#infra-support` (Slack) | General questions | 4 hours |
-| `#infra-incidents` (Slack) | Active incidents | 15 minutes |
-| devops@chaufher.app | Non-urgent requests | 24 hours |
-| PagerDuty | P1/P2 incidents | 15 minutes |
-
-### On-Call Rotation
-
-- **Schedule**: Weekly rotation (Monday 9am UTC)
-- **Coverage**: 24/7 for production
-- **Escalation**: On-call → Platform Lead → Security Lead → CTO
-
-### Escalation Path
-
-1. **P3/P4** (Low/Medium): Post in `#infra-support`, expect response within 4 hours
-2. **P2** (High): Page on-call via PagerDuty, expect response within 30 minutes
-3. **P1** (Critical): Page on-call + Platform Lead, expect response within 15 minutes
-
-### Incident Runbooks
-
-See [docs/runbooks/](docs/runbooks/) for detailed procedures:
-- [Incident Response](docs/runbooks/incident-response.md)
-- [Escalation Procedures](docs/runbooks/escalation.md)
-- [Communication Templates](docs/runbooks/communication.md)
-
----
-
-## Operational Runbooks
-
-### Quick Reference
-
-| Scenario | Runbook | Command |
-|----------|---------|---------|
-| Drift Detection | [drift-detection.md](docs/runbooks/drift-detection.md) | `./scripts/drift-detection.sh --env prod` |
-| Rollback | [rollback.md](docs/runbooks/rollback.md) | `./scripts/rollback.sh --env prod --version <tag>` |
-| Failover Test | [failover.md](docs/runbooks/failover.md) | `./scripts/failover-test.sh --region eastus2` |
-| Secret Rotation | [secret-rotation.md](docs/runbooks/secret-rotation.md) | `./scripts/rotate-secrets.sh --all` |
-| Scale Out | [scaling.md](docs/runbooks/scaling.md) | `./scripts/scale.sh --env prod --tier P2v3` |
-
-### Drift Detection
-
-```bash
-# Check for configuration drift
-./scripts/drift-detection.sh --env prod
-
-# Auto-remediate drift (with approval)
-./scripts/drift-detection.sh --env prod --remediate
-
-# Schedule drift check (via pipeline)
-# Runs daily at 6am UTC, results posted to #infra-alerts
-```
-
-### Rollback Procedure
-
-```bash
-# List available rollback points
-./scripts/rollback.sh --env prod --list
-
-# Rollback to specific version
-./scripts/rollback.sh --env prod --version v1.2.3
-
-# Emergency rollback (skips non-critical validations)
-./scripts/rollback.sh --env prod --version v1.2.3 --emergency
-```
-
-### Failover Testing
-
-```bash
-# Test failover to secondary region
-./scripts/failover-test.sh --primary eastus --secondary westus2
-
-# Validate DR readiness
-./scripts/dr-validation.sh --env prod
-
-# Full DR drill (scheduled quarterly)
-./scripts/dr-drill.sh --env prod --notify-stakeholders
-```
+- Resource existence checks confirm expected resources
+- Secrets validation verifies references, access policies, rotation policies
+- Monitoring hooks validate resource health alerts
+- Policy compliance reports generated
+- Incident drills validate operational readiness
 
 ---
 
@@ -471,136 +1163,13 @@ We follow [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 - **MINOR**: New features, backward-compatible
 - **PATCH**: Bug fixes, security patches
 
-### Bumping Versions
+### Release Process
 
-```bash
-# Bump patch version (e.g., 1.2.3 → 1.2.4)
-./scripts/bump-version.sh patch
-
-# Bump minor version (e.g., 1.2.3 → 1.3.0)
-./scripts/bump-version.sh minor
-
-# Bump major version (e.g., 1.2.3 → 2.0.0)
-./scripts/bump-version.sh major
-```
-
-### Release Tagging
-
-Releases are tagged automatically on merge to `main`:
-
-```bash
-# Manual tagging (if needed)
-git tag -a v1.2.3 -m "Release v1.2.3: Add Redis cache support"
-git push origin v1.2.3
-```
-
-### Changelog
-
-All changes are documented in [CHANGELOG.md](CHANGELOG.md):
-
-```markdown
-## [1.2.3] - 2024-01-15
-### Added
-- Redis cache module for session storage
-### Fixed
-- Key Vault access policy for staging environment
-### Security
-- Updated base images for container deployments
-```
+Releases are tagged automatically on merge to `main`. Manual tagging available if needed. All changes documented in [CHANGELOG.md](CHANGELOG.md) with sections for Added, Fixed, Security, and Breaking Changes.
 
 ---
 
-## Choreography with App Repos
-
-### Cross-Repo Promotion Flow
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│ chaufher-app│     │chaufher-api │     │chaufher-infra│
-│   (Mobile)  │     │  (Backend)  │     │   (Infra)    │
-└──────┬──────┘     └──────┬──────┘     └──────┬───────┘
-       │                   │                   │
-       │ 1. PR merged      │                   │
-       ├───────────────────┼──────────────────►│
-       │                   │   2. Trigger      │
-       │                   │   infra workflow  │
-       │                   │                   │
-       │                   │◄──────────────────┤
-       │                   │ 3. Deploy new     │
-       │                   │    resources      │
-       │◄──────────────────┼───────────────────┤
-       │ 4. Update env     │                   │
-       │    variables      │                   │
-```
-
-### Triggering Infra from App PRs
-
-Add to your app repo's workflow:
-
-```yaml
-# .github/workflows/trigger-infra.yml
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'infra-requirements.json'
-
-jobs:
-  trigger-infra:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger infra deployment
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: 'phoenixvc',
-              repo: 'chaufher-infra',
-              workflow_id: 'deploy.yml',
-              ref: 'main',
-              inputs: {
-                triggered_by: 'chaufher-app',
-                environment: 'staging'
-              }
-            })
-```
-
-### CD Gating
-
-Infra changes can gate app deployments:
-
-```yaml
-# In app repo deployment workflow
-jobs:
-  check-infra:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify infra version
-        run: |
-          REQUIRED_INFRA_VERSION=$(cat infra-requirements.json | jq -r '.version')
-          CURRENT_INFRA_VERSION=$(curl -s https://api.github.com/repos/phoenixvc/chaufher-infra/releases/latest | jq -r '.tag_name')
-          if [ "$REQUIRED_INFRA_VERSION" != "$CURRENT_INFRA_VERSION" ]; then
-            echo "Infra version mismatch. Required: $REQUIRED_INFRA_VERSION, Current: $CURRENT_INFRA_VERSION"
-            exit 1
-          fi
-```
-
-### Environment Promotion
-
-```bash
-# Promote dev → staging
-./scripts/promote.sh --from dev --to staging
-
-# Promote staging → prod (requires approval)
-./scripts/promote.sh --from staging --to prod --approve
-```
-
----
-
-## Accessibility & Docs
-
-### Documentation Index
+## Documentation Index
 
 | Document | Location | Description |
 |----------|----------|-------------|
@@ -609,306 +1178,13 @@ jobs:
 | ADRs | [docs/adr/](docs/adr/) | Architecture Decision Records |
 | Runbooks | [docs/runbooks/](docs/runbooks/) | Operational procedures |
 | Policy Docs | [policies/](policies/) | Azure Policy definitions |
-
-### Architecture Diagrams
-
-Diagrams are maintained in draw.io format:
-- `docs/architecture/network-topology.drawio`
-- `docs/architecture/data-flow.drawio`
-- `docs/architecture/dr-architecture.drawio`
-
-To edit: Open in [draw.io](https://app.diagrams.net/) or VS Code with draw.io extension.
+| Compliance Evidence | [docs/compliance/](docs/compliance/) | SOC 2, GDPR, ISO documentation |
+| Mobile Checklist | [MOBILE_CHECKLIST.md](MOBILE_CHECKLIST.md) | Mobile app integration guide |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) | Release notes and version history |
 
 ### Living Documentation
 
-- **Confluence**: [ChaufHER Infra Space](https://chaufher.atlassian.net/wiki/spaces/INFRA)
+- **Confluence**: ChaufHER Infra Space for collaborative documentation
 - **Architecture Diagrams**: Updated on every major release
 - **Runbooks**: Reviewed quarterly or after incidents
-
----
-
-## Link to App Checklist
-
-### Mobile Integration Checklist
-
-See **[MOBILE_CHECKLIST.md](MOBILE_CHECKLIST.md)** for the complete mobile app integration guide.
-
-#### Applicable Apps
-
-| App | Repository | Mandatory Sections |
-|-----|------------|-------------------|
-| ChaufHER Driver | `chaufher-app` (driver module) | All sections |
-| ChaufHER Rider | `chaufher-app` (rider module) | All sections |
-| ChaufHER Admin | `chaufher-admin` | API Contract, Auth, Telemetry |
-
-#### Mandatory Sections
-
-- [ ] **API Contract**: Verify endpoint URLs and versioning
-- [ ] **Authentication**: Configure Azure AD/B2C integration
-- [ ] **SignalR**: Set up real-time connections with fallbacks
-- [ ] **Telemetry**: Wire App Insights with correlation IDs
-- [ ] **Feature Flags**: Integrate Azure App Configuration
-
-#### Optional Sections
-
-- Push Notifications (if applicable)
-- Offline Mode (for mobile apps)
-- Rate Limiting Configuration
-
----
-
-## Product Overview
-
-The ChaufHER Infra repository is a foundational component for the ChaufHER platform, delivering infrastructure as code (IaC) and DevOps automation tailored for Azure-native environments. Its primary mission is to ensure that all environments—development, staging, production—are managed securely, reliably, and with operational transparency. The infrastructure code codifies ChaufHER's cloud resources, governance, policies, and monitoring, enabling platform scalability and consistent engineering workflows. The repository supports reliable deployments, disaster recovery, and fast incident response, with a focus on risk reduction and regulatory compliance.
-
-## Purpose
-
-The main purpose of the ChaufHER Infra repository is to provide a centralized, version-controlled platform for the definition, deployment, and governance of the platform's Azure infrastructure and supporting DevOps automation. It solves several key challenges:
-
-- Consistency and Repeatability: Ensures all environments are provisioned with the same standards, reducing drift and configuration errors.
-- Security and Governance: Codifies secure defaults, resource policies, role-based access, and secrets management.
-- Automation: Facilitates continuous integration and delivery, rapid rollback, and business continuity scripting.
-- Operational Excellence: Dashboards and on-call tooling provide live insight into cost, health, and risk.
-
-Example Scenario: When a new feature is developed, infrastructure for it is defined in the repo. Automated pipelines then provision and validate these resources, ensuring consistency and auditability.
-
-## Target Audience
-
-Primary:
-
-- DevOps Engineers — utilize the repo daily to define, update, and manage infrastructure, build pipelines, and monitor system health.
-
-Secondary:
-
-- Product and Security Leadership — consult documentation for understanding risk exposure, governance posture, and compliance (e.g., DR setup, controls).
-- New Engineers — rely on clear structure and documentation to onboard quickly, understand environment layouts, and adopt best practices.
-
-Market Segments: Companies requiring reliable, scalable, secure Azure-native infrastructure, with strong operational compliance.
-
-## Expected Outcomes
-
-A well-structured infrastructure repo delivers:
-
-- Reliability: High-uptime, low-incident environments, measured by system uptime and successful deployment rate.
-- Predictable Costs: Accurate forecasting and control over cloud spend, tracked through cost dashboards and alerting.
-- Security and Compliance: Fewer security events, policy violations, and faster remediation times.
-- Operational Agility: Rapid rollback and environment promotion for new releases, enhancing delivery velocity.
-- Incident Response Readiness: Incident runbooks and on-call automations that meet agreed response KPIs.
-
-### Key KPIs
-
-| KPI | Target Value | Measurement Method |
-|---|---:|---|
-| Uptime | 99.9%+ | Azure Monitor, status dashboards |
-| Time to Rollback | < 15 minutes | Pipeline logs, incident reports |
-| Cost Overruns | < 5% deviation/month | Azure Cost Management dashboards |
-| Security Incident SLA | < 30 min response | Incident/alerting logs |
-
-## Design Details
-
-The repo is organized by logical infrastructure domains, environment, and reusable modules. Major components include:
-
-- IaC Modules: Written in Bicep, Terraform, and ARM templates; organized for key resources (App Services, Key Vault, networking, etc.).
-- Reusable Deployment Modules: Parameterized for environment, region, and scale; standardized for repeatable application.
-- Deployment Scripts: PowerShell/Bash scripts for orchestration and automation beyond declarative IaC.
-- Shared YAML Pipelines: Reusable pipeline templates supporting PR validation, plan/apply, smoke testing, cost checks.
-- Dashboards: Azure dashboards for monitoring health, costs, deployments, and audit events.
-
-### Environment Separation Pattern
-
-Repository structure enforces strict separation between dev, staging, and prod. Each environment has dedicated resource groups, key vaults, and identity resources, managed via parameterized modules to ensure configuration drift detection and rapid rollback.
-
-## Architectural Overview
-
-### Infra Data Flow Overview
-
-1. Pull Request triggers IaC validation pipeline (static lint, policy checks).
-2. Upon approval, CI Pipeline stages "plan" outputs for code reviewers and leads.
-3. Gated Approval invokes deployment pipeline to "apply" changes to Azure.
-4. Pipeline updates role assignments, secrets, and triggers notification webhooks for application teams.
-5. Dashboards updated post-deployment; cost and policy reporting feed into central audit logs.
-6. Incident Runbooks: On detection of incident or drift, auto-escalation scripts execute rollback or remediation.
-
-### Key Modules
-
-- Azure App Service
-- Azure Key Vault (secrets rotation)
-- Azure CDN and Static Web Apps
-- Azure Monitoring (alerts, health checks)
-- Azure DevOps (pipeline orchestration)
-
-### Boundaries
-
-PR → Pipeline → Azure Resource Manager → Azure Services → Notification/Monitoring Layers
-
-## Data Structures and Algorithms
-
-- IaC Constructs: Modules (Bicep/Terraform), parameters/variables (region, SKU, secrets refs), and outputs (resource URIs, connection strings).
-- Naming Conventions: All resources and modules follow a strict {project}-{env}-{service}-{region} format for easy tracking and reporting.
-- Drift Detection: Scheduled pipeline jobs and Azure Policy audits detect configuration drift; changes flagged for review or automatic correction.
-- Auto-Promotion Scripts: Successful deployments in lower environments can trigger safe promotion to higher environments, reducing human error.
-- Script Abstractions: Shared scripts encapsulate recurring operational tasks (e.g., credential rotation, staged rollout, post-deployment cleanup).
-
-## System Interfaces
-
-The infra repository defines and manages:
-
-- Azure App Service — hosts chaufher.api and related backend services.
-- Azure Static Web Apps — delivers client-facing web applications.
-- Azure Key Vault — centralized secrets management and policy enforcement.
-- Azure CDN — distributes static assets with low latency.
-- Azure Monitor/Log Analytics — aggregates logs, events, and exposures for operations.
-
-All interfaces leverage Azure-native protocols, REST APIs, and RBAC.
-
-## User Interfaces
-
-- Engineering Ops Dashboards: Real-time views of deployment status, resource health, and current incidents.
-- Status Boards: Live service status, environment uptime, policy compliance.
-- Cost and Utilization Dashboards: Tracks forecasts, actuals, and overages.
-- Audit Logs: Detailed, immutable logs of resource changes and deployments.
-- Incident Management Tooling: On-call notification surfaces (Slack/MS Teams), runbook invocation panels, escalation hotlinks.
-
-## Hardware Interfaces
-
-- Cloud-Only Model: No on-premises; all resources reside in Microsoft Azure.
-- Zones/Regions: Resources are geo-distributed across primary/secondary Azure regions for high availability and DR.
-- Cloud Network Boundaries: Strict API-based communication between chaufher product assets and supporting infrastructure (firewall, private endpoints).
-- Geo-Redundancy: Core services deployed across zones to ensure resiliency; storage/data replication policies enforced via IaC.
-
-## Testing Plan
-
-Cadence: Every PR invokes static infrastructure validation, policy checks, and environment dry runs.
-
-### Policy-as-Code & Smoke Testing
-
-- Azure Policies and OPA gate key workflows; non-compliant PRs are blocked.
-- After deployment, synthetic probes validate newly provisioned resources.
-
-### Incident/Failover Drills
-
-- Regular tabletop and automated run-throughs of recovery scenarios and rollback mechanisms.
-
-### Environment Parity Validation
-
-- Automated checks to ensure dev/staging/prod are consistent.
-
-## Test Strategies and Tools
-
-- Plan-and-Destroy: Ensures all create/destroy operations are idempotent and reversible.
-- Policy-Gated PRs: Infrastructure changes must pass compliance, cost, and secret/storage-policy checks.
-- Environment Diffing: Automated diffs alert the team to divergence between intended state and reality.
-- Cost/Secret Regression Tests: Prevent accidental cost spikes or credential leaks.
-- Cross-AZ/Region Testing: DR and failover scenarios are validated across all supported regions.
-
-### Testing Tools
-
-- Linting: tflint, bicep lint, checkov — enforce code quality and security standards.
-- Security Scanning: Trivy, Azure Defender for Cloud — scan images/templates for vulnerabilities.
-- Pipeline Integration: GitHub Actions, Azure DevOps Pipelines — automate test execution, status notifications.
-
-## Testing Environments
-
-- Segregation: Each environment (dev/staging/prod) utilizes isolated resource groups, separate credentials, and unique Key Vaults.
-- Ephemeral Environments: PR-specific, spun up for complex tests and destroyed on merge/close.
-- Secure Data Handling: Non-production environments use scrubbed or synthetic data; secrets are never shared across environments.
-- DR Scripts: Deployed and validated in all environments; periodic failover and recovery runs ensure readiness.
-
-## Test Cases
-
-| Test Case | Trigger | Expected Outcome |
-|---|---|---|
-| PR triggers correct pipeline | PR creation | Linting, policy check, plan jobs run |
-| Drift detection | Scheduled/Manual | Drift identified/flagged; correction suggested |
-| Cost regression blocked | Pipeline run | Unsafe cost delta halts merge/pipeline |
-| Incident runbook escalation | Fake incident/test event | On-call paged; rollback/runbook triggered |
-| Secrets rotation test | Pipeline/manual | New secrets issued, audit log updated |
-| Cross-region DR drill | Scheduled/Manual | Environment promoted/failover to secondary |
-
-## Reporting and Metrics
-
-- Cost Dashboards: Real-time cloud spend monitoring with variance alerts and deep dives into service consumption.
-- Incident Reporting: Integrated with ticketing and alert systems; mean time to detection/resolution tracked.
-- Policy Drift/Violation Logs: Comprehensive logs of non-compliant resources and policy exceptions.
-- Pipeline Health: Success/failure rates for deployments, test coverage stats.
-- Uptime and Audit Data: Live and historical reporting of system availability and critical changes.
-
-Reporting is surfaced via Azure Dashboards, Power BI, and custom notification channels.
-
-## Deployment Plan and Environment
-
-### Pipeline Flow
-
-1. Code Review: PR triggers plan and compliance check.
-2. Approval: Lead/peer approval required before apply.
-3. Apply: Gated pipeline applies changes to target environment.
-4. Staged Rollout: For high-impact resources, apply changes in waves.
-5. Validation: Post-apply scripts and dashboards confirm resource/state correctness.
-6. Rollback Guidance: Automated reversion using previous pipeline state or manual approval for destructive rollbacks.
-7. Environment Promotion: Successful lower-environment changes can be promoted upward with minimal manual intervention.
-
-### Deployment Environment
-
-- Azure Account Hierarchy: Production, staging, and development use separate subscriptions or management groups for strong least-privilege and cost controls.
-- Resource Groups: Each domain (networking, compute, data) is scoped to environment-label resource groups.
-- Key Vault: Dedicated vault per environment; access restricted by environment and role.
-- Access Control Tiers: Contributor/Reader/Owner roles mapped to repo workflow stages.
-- High Availability: Critical infra deployed in multiple zones/regions; failover resources provisioned and tested.
-- Disaster Recovery: Environments are DR-ready, with DR scripts and runbooks validated regularly.
-
-## Deployment Tools
-
-- IaC Frameworks: Bicep (primary), with Terraform and ARM templates as needed for existing assets.
-- Pipeline Orchestration: GitHub Actions as the single orchestrator for build, test, environment promotion, and deploy.
-- Shared Scripts: Library of PowerShell/Bash scripts for custom orchestration and admin tasks.
-- Admin Dashboards: For real-time oversight, validation, and incident management.
-
-### Deployment Steps
-
-1. Developer opens PR for infra.
-2. Plan/lint/test pipeline runs; reports to reviewers.
-3. Reviewers approve or request changes.
-4. Merge on approval; gated "apply" pipeline runs in target environment.
-5. For high-risk resources, changes staged with hold points and health checks.
-6. Upon success, dashboards and stakeholders notified.
-7. If error detected, hooks trigger auto-rollback or guided manual intervention.
-8. DR and post-deploy validation runbooks invoked where applicable.
-
-## Post-Deployment Verification
-
-- Resource Existence: Automated checks confirm all expected resources exist and are properly labeled/tagged.
-- Secrets Validation: Pipeline verifies references, access policies, and rotation policies are set.
-- Monitoring Hooks: Resource health alerts, deployment success/failure are checked and logged.
-- Policy Compliance: Reports generated for policy compliance and role assignments.
-- Incident Drills: Major post-apply events trigger simulated incident responses to validate operational readiness.
-
-## Continuous Deployment
-
-ChaufHER utilizes true continuous deployment via:
-
-- Shared Pipelines: Modular, reusable YAML pipelines support multi-repo and multi-environment triggers.
-- Drift Detection: Automated jobs keep infrastructure aligned with code; remediations scheduled or executed with approval.
-- Incident Response Automation: Key runbooks auto-trigger on drift, failed rollouts, or detected incidents.
-- Rapid Rollback & Promotion: Automated tools for rollback/redeploy and safe promotion across all stages, reducing downtime and risk.
-
-Benefits: Accelerated delivery, reduced human error, continuous compliance, and seamless operational scaling. Environments adapt fluidly to code changes, ensuring alignment between business needs and technical reality.
-
-## App Integration & Alignment
-
-This repo defines the Azure infrastructure and DevOps workflows that the ChaufHER mobile apps (chaufher-app) depend on. Below are the key integration points and alignment requirements to ensure the mobile app and infra remain compatible:
-
-- API Contract & Versioning: The backend exposes an OpenAPI/REST surface (and SignalR endpoints for real-time events). App teams must use the documented base path, supported version, and contract; infra publishes/hosts the spec and supports backward-compatible changes with major-version policies.
-- Authentication: App uses JWT-based auth (or Azure AD/B2C). Infra provides per-environment identity resources (service principals, app registrations), Key Vault secrets for signing keys, and rotation policies.
-- SignalR / WebSockets: The infra provides SignalR endpoints and TLS termination. App must use the configured domain, ping/keepalive settings, and fallback paths (HTTP polling or offline queuing) where network reliability is a concern.
-- Push Notifications: FCM/APNs credentials and routing are stored in Key Vault; infra provides notification topics and AC/roles for apps to register device tokens securely.
-- Secrets & Config: App sensitive secrets (API keys, webhook tokens) are stored in Key Vaults per environment, and repos and CI pipelines fetch them securely; never commit secrets to source.
-- Key Vault Access: The app's backend service principal must have least-privilege access to Key Vault secrets; the infra enforces RBAC policies and scoped access via managed identities.
-- Telemetry & Monitoring: App instrumentation expects App Insights/Sentry plus Log Analytics. Infra provides the telemetry resources and access policies; apps should emit trace IDs and correlation metadata to link logs across infra and app layers.
-- Feature Flags & Config Store: Shared config (Azure App Configuration/Feature Flags) supported by infra; apps honor these runtime toggles for staged rollouts.
-- Rate Limits & Fallbacks: Safety event handling requires robust offline and fallback behavior (SMS, local cache); infra houses SMS providers (e.g., Twilio numbers) and telemetry for fallback success/failure rates.
-- Environment Parity: Infra provides per-environment sandboxes (dev/staging/prod) for the app; apps should default to dev/staging endpoints and use ephemeral PR environments when available.
-- CI/CD Integration: Mobile pipeline workflows should use infra-managed artifacts (service principal credentials, vault secrets, API endpoints) with gated approvals for production. Cross-repo triggers for safe promotions must be aligned and documented.
-- Naming & Tagging: Apps must adhere to resource naming conventions and tagging for costs and auditability; infra enforces naming conventions and resource policies per environment.
-- DR & Incident Workflows: App safety and panic flows must map to infra incident runbooks; apps surface minimal data while the backend and infra handle escalation, dispatching, and logging.
-
-For mobile engineers, see [MOBILE_CHECKLIST.md](MOBILE_CHECKLIST.md) for a dedicated checklist, environment variables, and example snippets.
+- **Compliance Docs**: Maintained continuously for audit readiness
