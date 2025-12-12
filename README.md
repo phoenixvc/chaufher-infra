@@ -1,5 +1,12 @@
 # ChaufHER Infra Technical Design
 
+## Table of Contents
+- [Product Overview](#product-overview)
+- [Purpose](#purpose)
+- [Design Details](#design-details)
+- [App Integration & Alignment](#app-integration--alignment)
+- [Mobile Checklist](MOBILE_CHECKLIST.md)
+
 ## Product Overview
 
 The ChaufHER Infra repository is a foundational component for the ChaufHER platform, delivering infrastructure as code (IaC) and DevOps automation tailored for Azure-native environments. Its primary mission is to ensure that all environments—development, staging, production—are managed securely, reliably, and with operational transparency. The infrastructure code codifies ChaufHER’s cloud resources, governance, policies, and monitoring, enabling platform scalability and consistent engineering workflows. The repository supports reliable deployments, disaster recovery, and fast incident response, with a focus on risk reduction and regulatory compliance.
