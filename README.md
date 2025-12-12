@@ -255,3 +255,59 @@ This repo defines the Azure infrastructure and DevOps workflows that the ChaufHE
 - DR & Incident Workflows: App safety and panic flows must map to infra incident runbooks; apps surface minimal data while the backend and infra handle escalation, dispatching, and logging.
 
 If you'd like, I can also: add an explicit API contract link and a short checklist for mobile engineers to follow. Should I add that now and include example env variable names and small code samples for connecting to SignalR and retrieving secrets from Key Vault?
+
+### Mobile Checklist & Examples
+
+API Contract: https://api.chaufher.app/openapi.json (replace with canonical spec URL or repository path)
+
+Quick checklist for mobile engineers:
+
+- Confirm `API_URL` and `SIGNALR_URL` for the environment (dev/staging/prod).
+- Use OAuth/JWT via Azure AD/B2C; do not embed client secrets in the app (store in CI/Key Vault).
+- Use SignalR with configured keep-alive settings and fallbacks for offline mode.
+- Never call Key Vault directly from the app — request secrets via your backend service.
+- Wire telemetry (App Insights / Sentry) and emit trace IDs for cross-service correlation.
+- Use feature flags from Azure App Configuration for staged rollouts.
+
+Suggested environment variable names (examples):
+
+- `API_URL=https://api.dev.chaufher.app`
+- `SIGNALR_URL=wss://api.dev.chaufher.app/hubs/notifications`
+- `KEY_VAULT_URI=https://chaufher-dev-kv.vault.azure.net/` (CI/backend)
+- `AZURE_AD_B2C_TENANT=...`
+- `FCM_SERVER_KEY=...` (CI/infra only)
+- `APNS_KEY=...` (CI/infra only)
+- `TELEMETRY_CONNECTION=...`
+
+Small Flutter SignalR example (using `signalr_core`):
+
+```dart
+import 'package:signalr_core/signalr_core.dart';
+
+final hubConnection = HubConnectionBuilder()
+	.withUrl(const String.fromEnvironment('SIGNALR_URL'),
+			HttpConnectionOptions(accessTokenFactory: () async => await getAccessToken()))
+	.build();
+
+await hubConnection.start();
+hubConnection.on('ReceiveLocation', (args) {
+	// handle real-time update
+});
+```
+
+Backend Key Vault sample (Node.js):
+
+```js
+const { DefaultAzureCredential } = require('@azure/identity');
+const { SecretClient } = require('@azure/keyvault-secrets');
+
+const credential = new DefaultAzureCredential();
+const client = new SecretClient(process.env.KEY_VAULT_URI, credential);
+
+async function getSecret(name) {
+	const secret = await client.getSecret(name);
+	return secret.value;
+}
+```
+
+If you'd like, I can add an automated checklist file (`MOBILE_CHECKLIST.md`) with copyable snippets and CI examples. Should I create it now?
