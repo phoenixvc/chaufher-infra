@@ -235,3 +235,23 @@ ChaufHER utilizes true continuous deployment via:
 - Rapid Rollback & Promotion: Automated tools for rollback/redeploy and safe promotion across all stages, reducing downtime and risk.
 
 Benefits: Accelerated delivery, reduced human error, continuous compliance, and seamless operational scaling. Environments adapt fluidly to code changes, ensuring alignment between business needs and technical reality.
+
+## App Integration & Alignment
+
+This repo defines the Azure infrastructure and DevOps workflows that the ChaufHER mobile apps (chaufher-app) depend on. Below are the key integration points and alignment requirements to ensure the mobile app and infra remain compatible:
+
+- API Contract & Versioning: The backend exposes an OpenAPI/REST surface (and SignalR endpoints for real-time events). App teams must use the documented base path, supported version, and contract; infra publishes/hosts the spec and supports backward-compatible changes with major-version policies.
+- Authentication: App uses JWT-based auth (or Azure AD/B2C). Infra provides per-environment identity resources (service principals, app registrations), Key Vault secrets for signing keys, and rotation policies.
+- SignalR / WebSockets: The infra provides SignalR endpoints and TLS termination. App must use the configured domain, ping/keepalive settings, and fallback paths (HTTP polling or offline queuing) where network reliability is a concern.
+- Push Notifications: FCM/APNs credentials and routing are stored in Key Vault; infra provides notification topics and AC/roles for apps to register device tokens securely.
+- Secrets & Config: App sensitive secrets (API keys, webhook tokens) are stored in Key Vaults per environment, and repos and CI pipelines fetch them securely; never commit secrets to source.
+- Key Vault Access: The app's backend service principal must have least-privilege access to Key Vault secrets; the infra enforces RBAC policies and scoped access via managed identities.
+- Telemetry & Monitoring: App instrumentation expects App Insights/Sentry plus Log Analytics. Infra provides the telemetry resources and access policies; apps should emit trace IDs and correlation metadata to link logs across infra and app layers.
+- Feature Flags & Config Store: Shared config (Azure App Configuration/Feature Flags) supported by infra; apps honor these runtime toggles for staged rollouts.
+- Rate Limits & Fallbacks: Safety event handling requires robust offline and fallback behavior (SMS, local cache); infra houses SMS providers (e.g., Twilio numbers) and telemetry for fallback success/failure rates.
+- Environment Parity: Infra provides per-environment sandboxes (dev/staging/prod) for the app; apps should default to dev/staging endpoints and use ephemeral PR environments when available.
+- CI/CD Integration: Mobile pipeline workflows should use infra-managed artifacts (service principal credentials, vault secrets, API endpoints) with gated approvals for production. Cross-repo triggers for safe promotions must be aligned and documented.
+- Naming & Tagging: Apps must adhere to resource naming conventions and tagging for costs and auditability; infra enforces naming conventions and resource policies per environment.
+- DR & Incident Workflows: App safety and panic flows must map to infra incident runbooks; apps surface minimal data while the backend and infra handle escalation, dispatching, and logging.
+
+If you'd like, I can also: add an explicit API contract link and a short checklist for mobile engineers to follow. Should I add that now and include example env variable names and small code samples for connecting to SignalR and retrieving secrets from Key Vault?
